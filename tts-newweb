@@ -1,0 +1,4350 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORIVOX — Give Intelligence a Voice</title>
+<style>
+  /* ============================================
+     IMPORTS & ROOT VARIABLES
+  ============================================ */
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-primary: #040408;
+    --bg-secondary: #07070f;
+    --bg-card: rgba(255,255,255,0.03);
+    --bg-glass: rgba(255,255,255,0.05);
+    --neon-purple: #8B5CF6;
+    --neon-blue: #3B82F6;
+    --neon-cyan: #06B6D4;
+    --neon-magenta: #EC4899;
+    --neon-indigo: #6366F1;
+    --glow-purple: rgba(139,92,246,0.4);
+    --glow-blue: rgba(59,130,246,0.4);
+    --glow-cyan: rgba(6,182,212,0.3);
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255,255,255,0.65);
+    --text-muted: rgba(255,255,255,0.35);
+    --border-subtle: rgba(255,255,255,0.08);
+    --border-glow: rgba(139,92,246,0.3);
+    --gradient-primary: linear-gradient(135deg, #8B5CF6, #3B82F6, #06B6D4);
+    --gradient-text: linear-gradient(135deg, #ffffff 0%, #a78bfa 50%, #38bdf8 100%);
+    --gradient-card: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(59,130,246,0.05));
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-spring: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* ============================================
+     RESET & BASE
+  ============================================ */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  html { scroll-behavior: smooth; overflow-x: hidden; }
+  
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    cursor: none;
+    line-height: 1.6;
+  }
+
+  ::selection { background: rgba(139,92,246,0.4); color: white; }
+
+  /* ============================================
+     CUSTOM CURSOR
+  ============================================ */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--neon-purple);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 99999;
+    transition: transform 0.1s ease, opacity 0.3s ease;
+    mix-blend-mode: screen;
+    box-shadow: 0 0 20px var(--neon-purple), 0 0 40px rgba(139,92,246,0.5);
+  }
+
+  .cursor-trail {
+    width: 40px; height: 40px;
+    border: 1px solid rgba(139,92,246,0.4);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 99998;
+    transition: all 0.15s ease;
+    mix-blend-mode: screen;
+  }
+
+  .cursor.clicked { transform: scale(2); }
+  .cursor-trail.clicked { transform: scale(0.5); border-color: var(--neon-cyan); }
+
+  /* ============================================
+     ANIMATED BACKGROUND
+  ============================================ */
+  .bg-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: orbFloat 20s ease-in-out infinite;
+  }
+
+  .bg-orb-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, #8B5CF6, transparent);
+    top: -100px; left: -100px;
+    animation-delay: 0s;
+  }
+
+  .bg-orb-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #3B82F6, transparent);
+    top: 30%; right: -150px;
+    animation-delay: -7s;
+  }
+
+  .bg-orb-3 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #06B6D4, transparent);
+    bottom: 20%; left: 20%;
+    animation-delay: -14s;
+  }
+
+  .bg-orb-4 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, #EC4899, transparent);
+    bottom: -50px; right: 30%;
+    animation-delay: -10s;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -40px) scale(1.05); }
+    50% { transform: translate(-20px, 30px) scale(0.95); }
+    75% { transform: translate(40px, 20px) scale(1.02); }
+  }
+
+  .bg-grid {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    background-image: 
+      linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Neon light trails */
+  .neon-trail {
+    position: fixed;
+    width: 2px;
+    background: linear-gradient(180deg, transparent, var(--neon-purple), var(--neon-blue), transparent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    animation: trailMove 8s ease-in-out infinite;
+    filter: blur(1px);
+  }
+
+  .neon-trail-1 { left: 15%; height: 200px; animation-delay: 0s; }
+  .neon-trail-2 { left: 35%; height: 150px; animation-delay: -2.5s; background: linear-gradient(180deg, transparent, var(--neon-cyan), transparent); }
+  .neon-trail-3 { left: 60%; height: 250px; animation-delay: -5s; }
+  .neon-trail-4 { left: 80%; height: 180px; animation-delay: -1.5s; background: linear-gradient(180deg, transparent, var(--neon-magenta), transparent); }
+
+  @keyframes trailMove {
+    0% { top: -250px; opacity: 0; }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.6; }
+    100% { top: 110vh; opacity: 0; }
+  }
+
+  /* ============================================
+     NAVIGATION
+  ============================================ */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    padding: 0 40px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition-smooth);
+    border-bottom: 1px solid transparent;
+  }
+
+  nav.scrolled {
+    background: rgba(4,4,8,0.85);
+    backdrop-filter: blur(24px);
+    border-bottom-color: var(--border-subtle);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    cursor: none;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-icon svg {
+    width: 36px; height: 36px;
+    filter: drop-shadow(0 0 8px var(--neon-purple));
+  }
+
+  .logo-text {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: var(--transition-smooth);
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nav-links a::before {
+    content: '';
+    position: absolute;
+    bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 1px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+  }
+
+  .nav-links a:hover {
+    color: white;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .nav-links a:hover::before { width: 60%; }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 9px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: none;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--neon-purple);
+    color: white;
+    background: rgba(139,92,246,0.08);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    color: white;
+    padding: 9px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: none;
+    border: none;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(139,92,246,0.3);
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover {
+    box-shadow: 0 0 40px rgba(139,92,246,0.6), 0 0 80px rgba(59,130,246,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ============================================
+     PAGES SYSTEM
+  ============================================ */
+  .page {
+    display: none;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page.active { display: block; }
+
+  /* ============================================
+     PAGE TRANSITION OVERLAY
+  ============================================ */
+  .page-transition {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    z-index: 9999;
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+
+  .page-transition.entering {
+    animation: pageEnter 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+
+  .page-transition.leaving {
+    animation: pageLeave 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+
+  @keyframes pageEnter {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0); }
+  }
+
+  @keyframes pageLeave {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* ============================================
+     HERO SECTION
+  ============================================ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 80px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    max-width: 700px;
+    z-index: 2;
+    position: relative;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neon-purple);
+    margin-bottom: 32px;
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+    animation-delay: 0.2s;
+  }
+
+  .hero-badge-dot {
+    width: 6px; height: 6px;
+    background: var(--neon-purple);
+    border-radius: 50%;
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .hero-title {
+    font-family: var(--font-heading);
+    font-size: clamp(52px, 7vw, 96px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+    animation-delay: 0.4s;
+  }
+
+  .hero-title .line-1 { display: block; color: white; }
+  .hero-title .line-2 {
+    display: block;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin-bottom: 44px;
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+    animation-delay: 0.6s;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;
+    animation-delay: 0.8s;
+  }
+
+  .btn-hero-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    color: white;
+    padding: 16px 32px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: none;
+    border: none;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(139,92,246,0.4), 0 20px 40px rgba(0,0,0,0.3);
+    text-decoration: none;
+  }
+
+  .btn-hero-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-hero-primary:hover::after { opacity: 1; }
+  .btn-hero-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 60px rgba(139,92,246,0.7), 0 30px 60px rgba(0,0,0,0.4);
+  }
+
+  .btn-hero-primary span, .btn-hero-primary svg { position: relative; z-index: 1; }
+
+  .btn-hero-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    color: white;
+    padding: 16px 32px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .btn-hero-secondary:hover {
+    border-color: rgba(139,92,246,0.5);
+    background: rgba(139,92,246,0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Hero Visual */
+  .hero-visual {
+    position: absolute;
+    right: 0; top: 0;
+    width: 55%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .hero-visual-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Central glow sphere */
+  .hero-sphere {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(139,92,246,0.3), rgba(59,130,246,0.2) 40%, rgba(6,182,212,0.1) 70%, transparent);
+    animation: spherePulse 6s ease-in-out infinite;
+    filter: blur(2px);
+  }
+
+  @keyframes spherePulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+
+  .hero-rings {
+    position: absolute;
+    width: 500px; height: 500px;
+  }
+
+  .hero-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ringRotate 20s linear infinite;
+  }
+
+  .hero-ring-1 {
+    width: 400px; height: 400px;
+    border-color: rgba(139,92,246,0.2);
+    animation-duration: 25s;
+  }
+
+  .hero-ring-2 {
+    width: 480px; height: 480px;
+    border-color: rgba(59,130,246,0.15);
+    animation-direction: reverse;
+    animation-duration: 35s;
+  }
+
+  .hero-ring-3 {
+    width: 550px; height: 550px;
+    border-color: rgba(6,182,212,0.1);
+    animation-duration: 45s;
+  }
+
+  @keyframes ringRotate {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* Floating UI Panels */
+  .float-panel {
+    position: absolute;
+    background: rgba(7,7,15,0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 16px;
+    padding: 16px 20px;
+    animation: floatPanel 6s ease-in-out infinite;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .float-panel-waveform {
+    top: 20%; left: -20px;
+    width: 260px;
+    animation-delay: 0s;
+  }
+
+  .float-panel-voice {
+    bottom: 25%; left: -40px;
+    width: 200px;
+    animation-delay: -2s;
+    animation-duration: 7s;
+  }
+
+  .float-panel-lang {
+    top: 15%; right: 60px;
+    width: 180px;
+    animation-delay: -4s;
+    animation-duration: 8s;
+  }
+
+  .float-panel-controls {
+    bottom: 15%; right: 40px;
+    width: 240px;
+    animation-delay: -1s;
+    animation-duration: 6.5s;
+  }
+
+  @keyframes floatPanel {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-12px) rotate(0.5deg); }
+    66% { transform: translateY(6px) rotate(-0.3deg); }
+  }
+
+  .panel-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  /* Waveform animation */
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 40px;
+  }
+
+  .wave-bar {
+    width: 3px;
+    background: linear-gradient(180deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 2px;
+    animation: waveAnim 1.4s ease-in-out infinite;
+  }
+
+  .wave-bar:nth-child(2n) { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-blue)); }
+  .wave-bar:nth-child(3n) { background: linear-gradient(180deg, var(--neon-magenta), var(--neon-purple)); }
+
+  @keyframes waveAnim {
+    0%, 100% { height: 4px; opacity: 0.4; }
+    50% { height: 100%; opacity: 1; }
+  }
+
+  /* Voice selector in panel */
+  .voice-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .voice-item:last-child { border-bottom: none; }
+
+  .voice-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+  }
+
+  .v1 { background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue)); }
+  .v2 { background: linear-gradient(135deg, var(--neon-cyan), var(--neon-indigo)); }
+  .v3 { background: linear-gradient(135deg, var(--neon-magenta), var(--neon-purple)); }
+
+  .voice-info p { font-size: 12px; font-weight: 600; color: white; }
+  .voice-info span { font-size: 10px; color: var(--text-muted); }
+
+  /* Language pills */
+  .lang-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .lang-pill {
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--neon-purple);
+  }
+
+  .lang-pill.active {
+    background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(59,130,246,0.3));
+    border-color: var(--neon-purple);
+    color: white;
+  }
+
+  /* Playback controls */
+  .playback {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .play-btn-small {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: none;
+    box-shadow: 0 0 20px rgba(139,92,246,0.5);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(139,92,246,0.5); }
+    50% { box-shadow: 0 0 40px rgba(139,92,246,0.8), 0 0 60px rgba(59,130,246,0.4); }
+  }
+
+  .playback-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .playback-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+    border-radius: 2px;
+    width: 35%;
+    animation: progressAnim 4s ease-in-out infinite;
+  }
+
+  @keyframes progressAnim {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+
+  /* ============================================
+     SCROLL ANIMATIONS
+  ============================================ */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-60px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal-left.revealed { opacity: 1; transform: translateX(0); }
+
+  .reveal-right {
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal-right.revealed { opacity: 1; transform: translateX(0); }
+
+  .reveal-scale {
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal-scale.revealed { opacity: 1; transform: scale(1); }
+
+  /* Stagger delays */
+  .stagger-1 { transition-delay: 0.1s; }
+  .stagger-2 { transition-delay: 0.2s; }
+  .stagger-3 { transition-delay: 0.3s; }
+  .stagger-4 { transition-delay: 0.4s; }
+  .stagger-5 { transition-delay: 0.5s; }
+  .stagger-6 { transition-delay: 0.6s; }
+
+  /* ============================================
+     SECTION SHARED STYLES
+  ============================================ */
+  section {
+    padding: 120px 80px;
+    position: relative;
+  }
+
+  .section-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--neon-purple);
+    margin-bottom: 20px;
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.25);
+    padding: 5px 14px;
+    border-radius: 100px;
+  }
+
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .section-title .gradient-text {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--text-secondary);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 60px;
+  }
+
+  /* ============================================
+     FEATURE STRIP
+  ============================================ */
+  .features-strip {
+    padding: 60px 80px;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(255,255,255,0.015);
+  }
+
+  .features-strip-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+  }
+
+  .strip-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .strip-icon {
+    width: 44px; height: 44px;
+    background: var(--gradient-card);
+    border: 1px solid var(--border-glow);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .strip-text p {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+  }
+
+  .strip-text span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================
+     FEATURE CARDS
+  ============================================ */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 32px;
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-card);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue), var(--neon-cyan));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-8px);
+    border-color: transparent;
+  }
+
+  .feature-card:hover::before { opacity: 1; }
+  .feature-card:hover::after { opacity: 0.6; }
+  .feature-card:hover .feature-icon { box-shadow: 0 0 30px rgba(139,92,246,0.5); }
+
+  .feature-card > * { position: relative; z-index: 1; }
+
+  .feature-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.1));
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    transition: var(--transition-smooth);
+  }
+
+  .feature-card h3 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: white;
+  }
+
+  .feature-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .feature-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(59,130,246,0.06));
+    border-color: rgba(139,92,246,0.3);
+  }
+
+  /* ============================================
+     VOICES PREVIEW
+  ============================================ */
+  .voices-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .voice-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 24px;
+    transition: var(--transition-smooth);
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .voice-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: left;
+  }
+
+  .voice-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    transform: translateY(-6px);
+    background: rgba(139,92,246,0.05);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 30px rgba(139,92,246,0.15);
+  }
+
+  .voice-card:hover::before { transform: scaleX(1); }
+
+  .voice-card-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: white;
+    position: relative;
+  }
+
+  .voice-card-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    padding: 2px;
+    background: var(--gradient-primary);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  .voice-card h4 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .voice-card .voice-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .voice-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .voice-tag {
+    background: rgba(139,92,246,0.1);
+    border: 1px solid rgba(139,92,246,0.2);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--neon-purple);
+    font-weight: 500;
+  }
+
+  .voice-mini-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 24px;
+    margin-bottom: 12px;
+  }
+
+  .mini-bar {
+    width: 2px;
+    border-radius: 1px;
+    background: linear-gradient(180deg, var(--neon-purple), var(--neon-blue));
+    animation: miniWave 1.2s ease-in-out infinite;
+    opacity: 0.4;
+  }
+
+  .voice-card:hover .mini-bar { opacity: 1; }
+
+  @keyframes miniWave {
+    0%, 100% { height: 4px; }
+    50% { height: 100%; }
+  }
+
+  .voice-play-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .voice-play-btn {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: none;
+    transition: var(--transition-smooth);
+  }
+
+  .voice-play-btn:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(139,92,246,0.6);
+  }
+
+  /* ============================================
+     USE CASES
+  ============================================ */
+  .use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .use-case-card {
+    display: flex;
+    gap: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 32px;
+    transition: var(--transition-smooth);
+    cursor: none;
+    align-items: flex-start;
+  }
+
+  .use-case-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    background: rgba(139,92,246,0.04);
+    transform: translateX(6px);
+    box-shadow: -4px 0 20px rgba(139,92,246,0.2);
+  }
+
+  .use-case-icon {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 28px;
+  }
+
+  .use-case-card h3 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: white;
+  }
+
+  .use-case-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ============================================
+     TESTIMONIALS
+  ============================================ */
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .testimonial-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+    transition: var(--transition-smooth);
+    cursor: none;
+  }
+
+  .testimonial-card:hover {
+    border-color: rgba(139,92,246,0.25);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .testimonial-quote {
+    font-size: 40px;
+    color: var(--neon-purple);
+    line-height: 1;
+    margin-bottom: 16px;
+    font-family: Georgia, serif;
+    opacity: 0.6;
+  }
+
+  .testimonial-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .author-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    font-family: var(--font-heading);
+  }
+
+  .author-info p { font-size: 14px; font-weight: 600; color: white; }
+  .author-info span { font-size: 12px; color: var(--text-muted); }
+
+  .stars {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 16px;
+  }
+
+  .star { color: #FBBF24; font-size: 14px; }
+
+  /* ============================================
+     PRICING
+  ============================================ */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .pricing-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 32px;
+    transition: var(--transition-smooth);
+    cursor: none;
+    position: relative;
+  }
+
+  .pricing-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(139,92,246,0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .pricing-card.featured {
+    background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.08));
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 40px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+    transform: translateY(-8px);
+  }
+
+  .pricing-card.featured:hover { transform: translateY(-14px); }
+
+  .plan-badge {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 16px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .price-amount {
+    font-family: var(--font-heading);
+    font-size: 48px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+  }
+
+  .price-currency {
+    font-size: 20px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .price-period {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .plan-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .plan-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin-bottom: 24px;
+  }
+
+  .plan-features {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+
+  .plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 7px 0;
+  }
+
+  .feature-check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .feature-cross {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .plan-cta {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: none;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+    border: none;
+  }
+
+  .plan-cta-primary {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    color: white;
+    box-shadow: 0 0 20px rgba(139,92,246,0.3);
+  }
+
+  .plan-cta-primary:hover {
+    box-shadow: 0 0 40px rgba(139,92,246,0.6);
+    transform: translateY(-2px);
+  }
+
+  .plan-cta-ghost {
+    background: transparent;
+    border: 1px solid var(--border-subtle) !important;
+    color: var(--text-secondary);
+  }
+
+  .plan-cta-ghost:hover {
+    border-color: rgba(139,92,246,0.4) !important;
+    color: white;
+    background: rgba(139,92,246,0.08);
+  }
+
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 60px;
+  }
+
+  .toggle-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .toggle-label.active { color: white; }
+
+  .toggle-switch {
+    width: 52px; height: 28px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 14px;
+    position: relative;
+    cursor: none;
+    transition: var(--transition-smooth);
+    box-shadow: 0 0 20px rgba(139,92,246,0.3);
+  }
+
+  .toggle-knob {
+    width: 22px; height: 22px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: var(--transition-smooth);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .toggle-switch.yearly .toggle-knob { left: 27px; }
+
+  .yearly-badge {
+    background: rgba(139,92,246,0.2);
+    border: 1px solid rgba(139,92,246,0.3);
+    color: var(--neon-purple);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  /* ============================================
+     ENTERPRISE CTA
+  ============================================ */
+  .enterprise-section {
+    padding: 120px 80px;
+  }
+
+  .enterprise-card {
+    background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(59,130,246,0.08), rgba(6,182,212,0.05));
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 32px;
+    padding: 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .enterprise-card::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(139,92,246,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  .enterprise-card h2 {
+    font-family: var(--font-heading);
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .enterprise-card p {
+    font-size: 18px;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  .enterprise-btns {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ============================================
+     FOOTER
+  ============================================ */
+  footer {
+    padding: 80px 80px 40px;
+    border-top: 1px solid var(--border-subtle);
+    position: relative;
+  }
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+
+  .footer-brand p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 16px;
+    max-width: 280px;
+  }
+
+  .footer-col h5 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .footer-col ul { list-style: none; }
+  .footer-col ul li { margin-bottom: 12px; }
+  .footer-col ul li a {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    cursor: none;
+    transition: color 0.2s ease;
+  }
+
+  .footer-col ul li a:hover { color: white; }
+
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .footer-bottom p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .footer-socials {
+    display: flex;
+    gap: 12px;
+  }
+
+  .social-btn {
+    width: 36px; height: 36px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: none;
+    transition: var(--transition-smooth);
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .social-btn:hover {
+    border-color: rgba(139,92,246,0.4);
+    color: white;
+    background: rgba(139,92,246,0.1);
+    box-shadow: 0 0 15px rgba(139,92,246,0.3);
+  }
+
+  /* ============================================
+     VOICES PAGE
+  ============================================ */
+  .page-hero {
+    padding: 160px 80px 80px;
+    text-align: center;
+    position: relative;
+  }
+
+  .page-hero h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(48px, 6vw, 80px);
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .page-hero p {
+    font-size: 18px;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+  }
+
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    padding: 0 80px;
+  }
+
+  .filter-pill {
+    padding: 8px 20px;
+    border-radius: 100px;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: none;
+    transition: var(--transition-smooth);
+    font-family: var(--font-body);
+  }
+
+  .filter-pill:hover, .filter-pill.active {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 0 20px rgba(139,92,246,0.3);
+  }
+
+  .search-bar {
+    position: relative;
+    margin-left: auto;
+  }
+
+  .search-bar input {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 10px 20px 10px 44px;
+    color: white;
+    font-size: 14px;
+    font-family: var(--font-body);
+    width: 260px;
+    transition: var(--transition-smooth);
+    outline: none;
+  }
+
+  .search-bar input:focus {
+    border-color: rgba(139,92,246,0.4);
+    box-shadow: 0 0 20px rgba(139,92,246,0.15);
+  }
+
+  .search-bar input::placeholder { color: var(--text-muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+  }
+
+  /* Large voices grid */
+  .voices-full-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 0 80px 80px;
+  }
+
+  .voice-card-full {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 28px;
+    transition: var(--transition-smooth);
+    cursor: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .voice-card-full:hover {
+    border-color: rgba(139,92,246,0.4);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(139,92,246,0.15);
+  }
+
+  .voice-card-full:hover .wave-bar { opacity: 1; animation-play-state: running; }
+
+  /* ============================================
+     STUDIO PAGE
+  ============================================ */
+  .studio-hero {
+    padding: 120px 80px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .studio-interface {
+    background: rgba(7,7,15,0.9);
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 24px;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 60px rgba(139,92,246,0.1);
+  }
+
+  .studio-interface::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-blue), transparent);
+  }
+
+  .studio-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+
+  .studio-tab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: none;
+    transition: var(--transition-smooth);
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+  }
+
+  .studio-tab.active {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    color: white;
+    box-shadow: 0 0 15px rgba(139,92,246,0.4);
+  }
+
+  .studio-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px;
+    color: white;
+    font-size: 15px;
+    line-height: 1.7;
+    font-family: var(--font-body);
+    resize: none;
+    height: 140px;
+    transition: var(--transition-smooth);
+    outline: none;
+  }
+
+  .studio-textarea:focus {
+    border-color: rgba(139,92,246,0.4);
+    box-shadow: 0 0 20px rgba(139,92,246,0.1);
+  }
+
+  .studio-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .studio-select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: white;
+    font-size: 13px;
+    font-family: var(--font-body);
+    cursor: none;
+    outline: none;
+    transition: var(--transition-smooth);
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .studio-select:focus { border-color: rgba(139,92,246,0.4); }
+
+  .slider-group {
+    margin: 16px 0;
+  }
+
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .studio-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.1);
+    cursor: none;
+    outline: none;
+  }
+
+  .studio-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    cursor: none;
+    box-shadow: 0 0 10px rgba(139,92,246,0.5);
+    transition: transform 0.2s ease;
+  }
+
+  .studio-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+  .studio-output {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+
+  .studio-waveform {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+
+  .studio-wave-bar {
+    flex: 1;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--neon-purple), var(--neon-blue));
+    animation: studioWave 2s ease-in-out infinite;
+    opacity: 0.7;
+  }
+
+  @keyframes studioWave {
+    0%, 100% { height: 4px; opacity: 0.3; }
+    50% { height: 100%; opacity: 1; }
+  }
+
+  .studio-playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ============================================
+     ABOUT PAGE
+  ============================================ */
+  .about-hero {
+    padding: 160px 80px 100px;
+    text-align: center;
+  }
+
+  .mission-section {
+    padding: 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .mission-visual {
+    position: relative;
+  }
+
+  .mission-graphic {
+    background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.08));
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 24px;
+    padding: 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mission-graphic::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%);
+  }
+
+  .mission-number {
+    font-family: var(--font-heading);
+    font-size: 120px;
+    font-weight: 700;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    position: relative;
+  }
+
+  .mission-number-label {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: 500;
+    position: relative;
+  }
+
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 0 80px 80px;
+  }
+
+  .value-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 32px;
+    transition: var(--transition-smooth);
+    cursor: none;
+  }
+
+  .value-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    transform: translateY(-6px);
+  }
+
+  .value-card h3 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .value-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ============================================
+     API PAGE
+  ============================================ */
+  .code-block {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 16px;
+    padding: 28px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.8;
+    overflow: auto;
+    position: relative;
+  }
+
+  .code-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-cyan), transparent);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .code-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+  }
+
+  .code-dot-1 { background: #FF5F57; }
+  .code-dot-2 { background: #FFBD2E; }
+  .code-dot-3 { background: #28CA41; }
+
+  .code-keyword { color: #C084FC; }
+  .code-string { color: #34D399; }
+  .code-comment { color: rgba(255,255,255,0.3); }
+  .code-function { color: #60A5FA; }
+  .code-variable { color: #F9A8D4; }
+  .code-number { color: #FDE68A; }
+
+  .integration-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 0 80px 80px;
+  }
+
+  .integration-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: var(--transition-smooth);
+    cursor: none;
+  }
+
+  .integration-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    background: rgba(139,92,246,0.04);
+    transform: translateX(6px);
+  }
+
+  .integration-logo {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .integration-card h4 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .integration-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================
+     DIVIDER
+  ============================================ */
+  .gradient-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-purple), var(--neon-blue), var(--neon-cyan), transparent);
+    opacity: 0.3;
+  }
+
+  /* ============================================
+     STAT COUNTERS
+  ============================================ */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    padding: 80px;
+    background: rgba(255,255,255,0.015);
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: var(--font-heading);
+    font-size: 52px;
+    font-weight: 700;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* ============================================
+     MOBILE NAV
+  ============================================ */
+  .mobile-menu-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: none;
+    padding: 4px;
+  }
+
+  .mobile-menu-btn span {
+    display: block;
+    width: 24px; height: 2px;
+    background: white;
+    border-radius: 1px;
+    transition: var(--transition-smooth);
+  }
+
+  /* ============================================
+     RESPONSIVE
+  ============================================ */
+  @media (max-width: 1200px) {
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr 1fr; }
+    .voices-full-grid { grid-template-columns: repeat(3, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-card.featured { grid-column: span 1; }
+  }
+
+  @media (max-width: 1024px) {
+    section, .enterprise-section { padding: 80px 40px; }
+    nav { padding: 0 24px; }
+    .hero { padding: 120px 40px 80px; }
+    .hero-visual { display: none; }
+    .hero-content { max-width: 100%; }
+    .studio-hero { grid-template-columns: 1fr; }
+    .mission-section { grid-template-columns: 1fr; padding: 40px; }
+    .voices-full-grid { padding: 0 40px 80px; }
+    .filter-bar { padding: 0 40px; }
+    .integration-grid { padding: 0 40px 80px; }
+    .values-grid { padding: 0 40px 80px; }
+    .features-strip-inner { grid-template-columns: repeat(2, 1fr); }
+    .stats-row { padding: 40px; }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .mobile-menu-btn { display: flex; }
+    .features-grid { grid-template-columns: 1fr; }
+    .voices-grid { grid-template-columns: repeat(2, 1fr); }
+    .voices-full-grid { grid-template-columns: repeat(2, 1fr); }
+    .use-cases-grid { grid-template-columns: 1fr; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr; gap: 32px; }
+    .integration-grid { grid-template-columns: 1fr; }
+    .values-grid { grid-template-columns: 1fr; }
+    .enterprise-card { padding: 40px 24px; }
+    .enterprise-btns { flex-direction: column; align-items: center; }
+    .hero-ctas { flex-direction: column; align-items: flex-start; }
+    section { padding: 60px 24px; }
+    footer { padding: 60px 24px 32px; }
+    .features-strip { padding: 40px 24px; }
+    .features-strip-inner { grid-template-columns: 1fr 1fr; }
+    .hero { padding: 100px 24px 60px; }
+    .page-hero { padding: 120px 24px 60px; }
+    .about-hero { padding: 120px 24px 60px; }
+    .studio-hero { padding: 120px 24px 60px; }
+    .filter-bar { padding: 0 24px; }
+    .voices-full-grid { padding: 0 24px 60px; }
+    .integration-grid { padding: 0 24px 60px; }
+    .values-grid { padding: 0 24px 60px; }
+    .enterprise-section { padding: 60px 24px; }
+  }
+
+  /* ============================================
+     UTILITY
+  ============================================ */
+  .text-center { text-align: center; }
+  .flex-center { display: flex; align-items: center; justify-content: center; }
+  .mb-0 { margin-bottom: 0 !important; }
+
+  /* Glow border animated */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue), var(--neon-cyan), var(--neon-purple));
+    background-size: 300% 300%;
+    animation: gradientRotate 4s ease infinite;
+    z-index: -1;
+    opacity: 0.6;
+  }
+
+  @keyframes gradientRotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Number ticker animation */
+  .ticker {
+    display: inline-block;
+    animation: tickerAnim 0.5s ease-out;
+  }
+
+  @keyframes tickerAnim {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* Typing cursor */
+  .typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--neon-purple);
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+
+<!-- Animated Background -->
+<div class="bg-canvas">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
+  <div class="neon-trail neon-trail-1"></div>
+  <div class="neon-trail neon-trail-2"></div>
+  <div class="neon-trail neon-trail-3"></div>
+  <div class="neon-trail neon-trail-4"></div>
+</div>
+<div class="bg-grid"></div>
+
+<!-- Page Transition -->
+<div class="page-transition" id="pageTransition"></div>
+
+<!-- ============================================
+     NAVIGATION
+============================================ -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo" onclick="navigateTo('home'); return false;">
+    <div class="logo-icon">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="16" stroke="url(#logoGrad)" stroke-width="1.5"/>
+        <path d="M10 18C10 18 13 12 18 12C23 12 26 18 26 18C26 18 23 24 18 24C13 24 10 18 10 18Z" stroke="url(#logoGrad)" stroke-width="1.5" fill="none"/>
+        <circle cx="18" cy="18" r="3" fill="url(#logoGrad)"/>
+        <path d="M14 18L12 15M14 18L12 21" stroke="url(#logoGrad2)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M22 18L24 15M22 18L24 21" stroke="url(#logoGrad2)" stroke-width="1" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="logoGrad" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#38BDF8"/>
+          </linearGradient>
+          <linearGradient id="logoGrad2" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="logo-text">ORIVOX</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#" onclick="navigateTo('home'); return false;">Home</a></li>
+    <li><a href="#" onclick="navigateTo('voices'); return false;">Voices</a></li>
+    <li><a href="#" onclick="navigateTo('studio'); return false;">Studio</a></li>
+    <li><a href="#" onclick="navigateTo('usecases'); return false;">Use Cases</a></li>
+    <li><a href="#" onclick="navigateTo('pricing'); return false;">Pricing</a></li>
+    <li><a href="#" onclick="navigateTo('about'); return false;">About</a></li>
+    <li><a href="#" onclick="navigateTo('api'); return false;">API</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <button class="btn-ghost">Sign In</button>
+    <button class="btn-primary" onclick="navigateTo('studio')">Start Free</button>
+    <div class="mobile-menu-btn" id="mobileMenuBtn">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================
+     PAGE: HOME
+============================================ -->
+<div class="page active" id="page-home">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        Next-Generation Voice AI
+      </div>
+      <h1 class="hero-title">
+        <span class="line-1">Where Text</span>
+        <span class="line-2">Becomes Voice.</span>
+      </h1>
+      <p class="hero-subtitle">
+        ORIVOX transforms words into lifelike AI speech with studio-quality realism, multilingual support, voice cloning, and expressive control for creators, teams, and products.
+      </p>
+      <div class="hero-ctas">
+        <a href="#" class="btn-hero-primary" onclick="navigateTo('studio'); return false;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+          <span>Start Creating</span>
+        </a>
+        <a href="#" class="btn-hero-secondary" onclick="navigateTo('voices'); return false;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"/>
+            <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+          Hear Demo
+        </a>
+      </div>
+    </div>
+
+    <!-- Hero Visual -->
+    <div class="hero-visual">
+      <div class="hero-visual-inner">
+        <div class="hero-sphere"></div>
+        <div class="hero-rings">
+          <div class="hero-ring hero-ring-1"></div>
+          <div class="hero-ring hero-ring-2"></div>
+          <div class="hero-ring hero-ring-3"></div>
+        </div>
+
+        <!-- Floating Panels -->
+        <div class="float-panel float-panel-waveform">
+          <div class="panel-label">Live Output</div>
+          <div class="waveform" id="heroWaveform">
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px;">
+            <span style="font-size:11px; color:var(--text-muted);">0:04</span>
+            <span style="font-size:11px; color:var(--neon-cyan); font-weight:600;">●&nbsp;Recording</span>
+          </div>
+        </div>
+
+        <div class="float-panel float-panel-voice">
+          <div class="panel-label">Voice</div>
+          <div class="voice-item">
+            <div class="voice-avatar v1">A</div>
+            <div class="voice-info">
+              <p>Aurora</p>
+              <span>EN · Female · Warm</span>
+            </div>
+          </div>
+          <div class="voice-item">
+            <div class="voice-avatar v2">N</div>
+            <div class="voice-info">
+              <p>Nova</p>
+              <span>EN · Male · Deep</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="float-panel float-panel-lang">
+          <div class="panel-label">Language</div>
+          <div class="lang-pills">
+            <div class="lang-pill active">English</div>
+            <div class="lang-pill">日本語</div>
+            <div class="lang-pill">Español</div>
+            <div class="lang-pill">中文</div>
+          </div>
+        </div>
+
+        <div class="float-panel float-panel-controls">
+          <div class="panel-label">Playback</div>
+          <div class="playback">
+            <div class="play-btn-small">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                <polygon points="5,3 19,12 5,21"/>
+              </svg>
+            </div>
+            <div class="playback-bar">
+              <div class="playback-progress"></div>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">1:24</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURE STRIP -->
+  <div class="features-strip">
+    <div class="features-strip-inner">
+      <div class="strip-item reveal stagger-1">
+        <div class="strip-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="strip-text">
+          <p>Studio Quality</p>
+          <span>Ultra-realistic audio output</span>
+        </div>
+      </div>
+      <div class="strip-item reveal stagger-2">
+        <div class="strip-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
+            <path d="M12 1v22M17 5H9.5C7.57 5 6 6.57 6 8.5S7.57 12 9.5 12H14.5C16.43 12 18 13.57 18 15.5S16.43 19 14.5 19H6"/>
+          </svg>
+        </div>
+        <div class="strip-text">
+          <p>29+ Languages</p>
+          <span>Global multilingual support</span>
+        </div>
+      </div>
+      <div class="strip-item reveal stagger-3">
+        <div class="strip-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+        </div>
+        <div class="strip-text">
+          <p>Voice Cloning</p>
+          <span>Clone any voice in minutes</span>
+        </div>
+      </div>
+      <div class="strip-item reveal stagger-4">
+        <div class="strip-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div class="strip-text">
+          <p>Real-Time API</p>
+          <span>Low-latency integration</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT ORIVOX DOES -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto;">
+      <div style="text-align:center; margin-bottom:60px;">
+        <div class="section-label reveal">The Platform</div>
+        <h2 class="section-title reveal" style="margin-bottom:16px; display:block; text-align:center;">
+          Everything you need to<br><span class="gradient-text">create remarkable audio</span>
+        </h2>
+        <p class="section-subtitle reveal" style="margin:0 auto; text-align:center;">
+          From a single line of text to a full cinematic production — ORIVOX gives you complete control over every voice, every word, every emotion.
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card featured reveal stagger-1">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2">
+              <path d="M12 2a3 3 0 013 3v7a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v3M8 22h8"/>
+            </svg>
+          </div>
+          <h3>Lifelike Text-to-Speech</h3>
+          <p>Generate ultra-realistic human speech from any text. ORIVOX captures natural prosody, breathing, and micro-expressions that make every word feel alive. Our proprietary neural architecture produces audio indistinguishable from a real human voice.</p>
+          <div style="margin-top:24px; display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="voice-tag">Neural TTS</span>
+            <span class="voice-tag">Studio Quality</span>
+            <span class="voice-tag">48kHz</span>
+            <span class="voice-tag">Zero Latency</span>
+          </div>
+        </div>
+        <div class="feature-card reveal stagger-2">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+          </div>
+          <h3>Instant Voice Cloning</h3>
+          <p>Upload a 30-second sample to create a perfect digital twin of any voice. Use it across unlimited projects.</p>
+        </div>
+        <div class="feature-card reveal stagger-3">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
+            </svg>
+          </div>
+          <h3>29+ Languages</h3>
+          <p>Speak to the world in their native language. Full multilingual support with native accent preservation.</p>
+        </div>
+        <div class="feature-card reveal stagger-1">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2">
+              <path d="M9 9l5 12 1.774-5.226L21 14 9 9z"/><path d="M16.071 16.071l4.243 4.243"/>
+            </svg>
+          </div>
+          <h3>Emotion Control</h3>
+          <p>Fine-tune tone, pacing, emphasis, and emotion. From calm narration to dramatic storytelling.</p>
+        </div>
+        <div class="feature-card reveal stagger-2">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>API Integration</h3>
+          <p>Embed real-time voice generation into any app, website, or workflow with our developer-first REST API.</p>
+        </div>
+        <div class="feature-card reveal stagger-3">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          <h3>Team Workspace</h3>
+          <p>Collaborate with your team, share projects, manage voice libraries, and export in multiple formats.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-item reveal stagger-1">
+      <div class="stat-number">2M+</div>
+      <div class="stat-label">Active Creators</div>
+    </div>
+    <div class="stat-item reveal stagger-2">
+      <div class="stat-number">500M+</div>
+      <div class="stat-label">Words Generated</div>
+    </div>
+    <div class="stat-item reveal stagger-3">
+      <div class="stat-number">29+</div>
+      <div class="stat-label">Languages</div>
+    </div>
+    <div class="stat-item reveal stagger-4">
+      <div class="stat-number">99.9%</div>
+      <div class="stat-label">Uptime SLA</div>
+    </div>
+  </div>
+
+  <!-- VOICES PREVIEW -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:48px;">
+        <div>
+          <div class="section-label reveal">Voice Library</div>
+          <h2 class="section-title reveal" style="margin-bottom:0;">Popular <span class="gradient-text">Voices</span></h2>
+        </div>
+        <a href="#" onclick="navigateTo('voices'); return false;" class="btn-ghost reveal" style="white-space:nowrap;">Browse All Voices →</a>
+      </div>
+      <div class="voices-grid">
+        <!-- Voice 1 -->
+        <div class="voice-card reveal stagger-1">
+          <div class="voice-card-avatar" style="background:linear-gradient(135deg,#8B5CF6,#3B82F6);">A</div>
+          <h4>Aurora</h4>
+          <div class="voice-meta">English · Female · Warm & Natural</div>
+          <div class="voice-tags">
+            <span class="voice-tag">Narration</span>
+            <span class="voice-tag">Podcast</span>
+          </div>
+          <div class="voice-mini-wave" id="wave1"></div>
+          <div class="voice-play-row">
+            <div class="voice-play-btn">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">0:12 preview</span>
+          </div>
+        </div>
+        <!-- Voice 2 -->
+        <div class="voice-card reveal stagger-2">
+          <div class="voice-card-avatar" style="background:linear-gradient(135deg,#06B6D4,#6366F1);">N</div>
+          <h4>Nova</h4>
+          <div class="voice-meta">English · Male · Deep & Rich</div>
+          <div class="voice-tags">
+            <span class="voice-tag">Cinematic</span>
+            <span class="voice-tag">Ads</span>
+          </div>
+          <div class="voice-mini-wave" id="wave2"></div>
+          <div class="voice-play-row">
+            <div class="voice-play-btn">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">0:10 preview</span>
+          </div>
+        </div>
+        <!-- Voice 3 -->
+        <div class="voice-card reveal stagger-3">
+          <div class="voice-card-avatar" style="background:linear-gradient(135deg,#EC4899,#8B5CF6);">S</div>
+          <h4>Stella</h4>
+          <div class="voice-meta">Spanish · Female · Bright</div>
+          <div class="voice-tags">
+            <span class="voice-tag">Character</span>
+            <span class="voice-tag">Games</span>
+          </div>
+          <div class="voice-mini-wave" id="wave3"></div>
+          <div class="voice-play-row">
+            <div class="voice-play-btn">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">0:14 preview</span>
+          </div>
+        </div>
+        <!-- Voice 4 -->
+        <div class="voice-card reveal stagger-4">
+          <div class="voice-card-avatar" style="background:linear-gradient(135deg,#3B82F6,#06B6D4);">K</div>
+          <h4>Kiro</h4>
+          <div class="voice-meta">Japanese · Male · Calm</div>
+          <div class="voice-tags">
+            <span class="voice-tag">Meditation</span>
+            <span class="voice-tag">Corporate</span>
+          </div>
+          <div class="voice-mini-wave" id="wave4"></div>
+          <div class="voice-play-row">
+            <div class="voice-play-btn">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">0:09 preview</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section style="background:rgba(255,255,255,0.01);">
+    <div style="max-width:1400px; margin:0 auto;">
+      <div style="text-align:center; margin-bottom:60px;">
+        <div class="section-label reveal">Use Cases</div>
+        <h2 class="section-title reveal text-center">Built for <span class="gradient-text">Every Creator</span></h2>
+        <p class="section-subtitle reveal" style="margin:0 auto; text-align:center;">
+          Whether you're a solo creator or an enterprise team, ORIVOX fits seamlessly into your workflow.
+        </p>
+      </div>
+      <div class="use-cases-grid">
+        <div class="use-case-card reveal stagger-1">
+          <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.1)); border:1px solid rgba(139,92,246,0.3);">🎬</div>
+          <div>
+            <h3>YouTube & Content</h3>
+            <p>Create compelling voiceovers for your videos in minutes. Narrate, explain, and entertain with a voice that matches your brand perfectly.</p>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-2">
+          <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(99,102,241,0.1)); border:1px solid rgba(6,182,212,0.3);">📚</div>
+          <div>
+            <h3>Audiobooks & Stories</h3>
+            <p>Bring manuscripts to life with rich, expressive narration. Create full cast productions or solo readings with any voice you choose.</p>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-3">
+          <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(139,92,246,0.1)); border:1px solid rgba(236,72,153,0.3);">📢</div>
+          <div>
+            <h3>Marketing & Ads</h3>
+            <p>Generate persuasive, on-brand ad voiceovers at scale. Test multiple voice styles and export instantly for any platform.</p>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-4">
+          <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(6,182,212,0.1)); border:1px solid rgba(59,130,246,0.3);">🎮</div>
+          <div>
+            <h3>Games & Characters</h3>
+            <p>Voice entire game casts with unique character voices. Create memorable NPCs and dynamic dialogue with emotion-controlled output.</p>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-1">
+          <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.3);">🎙️</div>
+          <div>
+            <h3>Podcasts & Narration</h3>
+            <p>Produce professional podcast intros, episodes, and narration without a recording studio. Launch faster, sound better.</p>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-2">
+          <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(236,72,153,0.1)); border:1px solid rgba(139,92,246,0.3);">🧠</div>
+          <div>
+            <h3>Education & E-Learning</h3>
+            <p>Create engaging educational content with multilingual voiceovers. Make learning accessible to students around the world.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto;">
+      <div style="text-align:center; margin-bottom:60px;">
+        <div class="section-label reveal">Testimonials</div>
+        <h2 class="section-title reveal text-center">Loved by <span class="gradient-text">Creators Worldwide</span></h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal stagger-1">
+          <div class="stars">★★★★★</div>
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">ORIVOX completely changed how I produce content. The voices are so realistic that my audience can't tell the difference. I've tripled my output without any extra recording time.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#8B5CF6,#3B82F6);">M</div>
+            <div class="author-info">
+              <p>Maya Chen</p>
+              <span>YouTuber · 2.4M subscribers</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal stagger-2">
+          <div class="stars">★★★★★</div>
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">The voice cloning feature is absolutely incredible. I cloned my own voice and now my team can generate content in my style 24/7. The API integration was seamless.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#06B6D4,#6366F1);">J</div>
+            <div class="author-info">
+              <p>James Morrison</p>
+              <span>Indie Game Developer</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal stagger-3">
+          <div class="stars">★★★★★</div>
+          <div class="testimonial-quote">"</div>
+          <p class="testimonial-text">We use ORIVOX to produce our entire e-learning library in 12 languages. The quality is exceptional and the multilingual support saved us months of recording time.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:linear-gradient(135deg,#EC4899,#8B5CF6);">S</div>
+            <div class="author-info">
+              <p>Sarah Okonkwo</p>
+              <span>Head of L&D · EduCorp</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING PREVIEW -->
+  <section style="background:rgba(255,255,255,0.01);">
+    <div style="max-width:1400px; margin:0 auto;">
+      <div style="text-align:center; margin-bottom:60px;">
+        <div class="section-label reveal">Pricing</div>
+        <h2 class="section-title reveal text-center">Simple, <span class="gradient-text">Transparent Pricing</span></h2>
+        <p class="section-subtitle reveal" style="margin:0 auto; text-align:center;">Start free. Scale as you grow. No surprise charges.</p>
+        <button class="btn-primary reveal" style="margin:0 auto;" onclick="navigateTo('pricing')">See Full Pricing →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTERPRISE CTA -->
+  <div class="enterprise-section">
+    <div class="enterprise-card glow-border">
+      <div class="section-label reveal" style="margin-bottom:20px;">Enterprise</div>
+      <h2 class="reveal">Ready to give your<br><span class="gradient-text">product a voice?</span></h2>
+      <p class="reveal">Join 2 million+ creators, developers, and enterprises already building with ORIVOX. Start free — no credit card required.</p>
+      <div class="enterprise-btns reveal">
+        <a href="#" class="btn-hero-primary" onclick="navigateTo('studio'); return false;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+          <span>Start Free Today</span>
+        </a>
+        <a href="#" class="btn-hero-secondary" onclick="navigateTo('api'); return false;">Talk to Sales</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" onclick="navigateTo('home'); return false;" style="display:inline-flex;">
+          <div class="logo-icon">
+            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18" cy="18" r="16" stroke="url(#fLogoGrad)" stroke-width="1.5"/>
+              <path d="M10 18C10 18 13 12 18 12C23 12 26 18 26 18C26 18 23 24 18 24C13 24 10 18 10 18Z" stroke="url(#fLogoGrad)" stroke-width="1.5" fill="none"/>
+              <circle cx="18" cy="18" r="3" fill="url(#fLogoGrad)"/>
+              <defs>
+                <linearGradient id="fLogoGrad" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#8B5CF6"/>
+                  <stop offset="100%" stop-color="#38BDF8"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="logo-text">ORIVOX</span>
+        </a>
+        <p>The next-generation AI voice platform. Transform text into lifelike speech for creators, developers, and enterprises worldwide.</p>
+        <div class="footer-socials" style="margin-top:24px;">
+          <div class="social-btn">𝕏</div>
+          <div class="social-btn">in</div>
+          <div class="social-btn">gh</div>
+          <div class="social-btn">yt</div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#" onclick="navigateTo('voices'); return false;">Voice Library</a></li>
+          <li><a href="#" onclick="navigateTo('studio'); return false;">Studio</a></li>
+          <li><a href="#" onclick="navigateTo('api'); return false;">API Access</a></li>
+          <li><a href="#">Voice Cloning</a></li>
+          <li><a href="#">Projects</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Use Cases</h5>
+        <ul>
+          <li><a href="#">Content Creation</a></li>
+          <li><a href="#">Audiobooks</a></li>
+          <li><a href="#">Podcasting</a></li>
+          <li><a href="#">Game Audio</a></li>
+          <li><a href="#">E-Learning</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#" onclick="navigateTo('about'); return false;">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Legal</h5>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+          <li><a href="#">Security</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 ORIVOX AI, Inc. All rights reserved. Give Intelligence a Voice.</p>
+      <div style="display:flex; gap:20px;">
+        <a href="#" style="font-size:13px; color:var(--text-muted); text-decoration:none; cursor:none;">Privacy</a>
+        <a href="#" style="font-size:13px; color:var(--text-muted); text-decoration:none; cursor:none;">Terms</a>
+        <a href="#" style="font-size:13px; color:var(--text-muted); text-decoration:none; cursor:none;">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- end page-home -->
+
+<!-- ============================================
+     PAGE: VOICES
+============================================ -->
+<div class="page" id="page-voices">
+
+  <div class="page-hero">
+    <div class="section-label reveal">Voice Library</div>
+    <h1 class="reveal">
+      <span>Find Your </span>
+      <span class="gradient-text">Perfect Voice</span>
+    </h1>
+    <p class="reveal">Browse 300+ ultra-realistic AI voices across languages, styles, tones, and personalities. Preview, play, and create instantly.</p>
+    <div class="hero-ctas" style="justify-content:center;" class="reveal">
+      <a href="#" class="btn-hero-primary reveal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="5,3 19,12 5,21"/>
+        </svg>
+        <span>Try Any Voice Free</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-pill active">All Voices</button>
+    <button class="filter-pill">Narration</button>
+    <button class="filter-pill">Podcast</button>
+    <button class="filter-pill">Corporate</button>
+    <button class="filter-pill">Audiobook</button>
+    <button class="filter-pill">Character</button>
+    <button class="filter-pill">Cinematic</button>
+    <button class="filter-pill">Social Media</button>
+    <div class="search-bar">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search voices...">
+    </div>
+  </div>
+
+  <!-- Featured Voices -->
+  <div style="padding:0 80px 40px;">
+    <div class="section-label reveal" style="margin-bottom:24px;">Featured</div>
+  </div>
+
+  <div class="voices-full-grid">
+    <!-- 12 Voice cards -->
+    <div class="voice-card-full reveal stagger-1">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#8B5CF6,#3B82F6); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">A</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Aurora</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇺🇸 English · Female</span>
+        </div>
+        <div style="margin-left:auto;">
+          <span style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.25); padding:3px 10px; border-radius:6px; font-size:10px; font-weight:600; color:var(--neon-purple);">FEATURED</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Warm</span>
+        <span class="voice-tag">Natural</span>
+        <span class="voice-tag">Narration</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue)); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:15 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-2">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#06B6D4,#6366F1); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">N</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Nova</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇺🇸 English · Male</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Deep</span>
+        <span class="voice-tag">Rich</span>
+        <span class="voice-tag">Cinematic</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,var(--neon-cyan),var(--neon-indigo)); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:12 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-3">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#EC4899,#8B5CF6); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">S</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Stella</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇪🇸 Español · Female</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Bright</span>
+        <span class="voice-tag">Expressive</span>
+        <span class="voice-tag">Character</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,#EC4899,#8B5CF6); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:14 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-4">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#3B82F6,#06B6D4); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">K</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Kiro</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇯🇵 Japanese · Male</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Calm</span>
+        <span class="voice-tag">Corporate</span>
+        <span class="voice-tag">Meditation</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,#3B82F6,#06B6D4); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:09 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-1">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#8B5CF6,#EC4899); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">L</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Luna</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇫🇷 Français · Female</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Elegant</span>
+        <span class="voice-tag">Soft</span>
+        <span class="voice-tag">Audiobook</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,#8B5CF6,#EC4899); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:11 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-2">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#6366F1,#3B82F6); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">O</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Orion</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇩🇪 Deutsch · Male</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Authoritative</span>
+        <span class="voice-tag">Podcast</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,#6366F1,#3B82F6); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:13 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-3">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#06B6D4,#8B5CF6); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">I</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Iris</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇬🇧 British · Female</span>
+        </div>
+        <div style="margin-left:auto;">
+          <span style="background:rgba(6,182,212,0.15); border:1px solid rgba(6,182,212,0.3); padding:3px 10px; border-radius:6px; font-size:10px; font-weight:600; color:var(--neon-cyan);">TRENDING</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Crisp</span>
+        <span class="voice-tag">Professional</span>
+        <span class="voice-tag">Corporate</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,#06B6D4,#8B5CF6); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:16 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+
+    <div class="voice-card-full reveal stagger-4">
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:20px;">
+        <div class="voice-card-avatar" style="background:linear-gradient(135deg,#EC4899,#6366F1); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; font-family:var(--font-heading); color:white; flex-shrink:0;">Z</div>
+        <div>
+          <h4 style="font-family:var(--font-heading); font-size:16px; font-weight:600; margin-bottom:2px;">Zara</h4>
+          <span style="font-size:12px; color:var(--text-muted);">🇮🇳 Hindi · Female</span>
+        </div>
+      </div>
+      <div class="voice-tags" style="margin-bottom:16px;">
+        <span class="voice-tag">Warm</span>
+        <span class="voice-tag">Storytelling</span>
+        <span class="voice-tag">E-Learning</span>
+      </div>
+      <div class="waveform" style="height:36px; margin-bottom:16px;"></div>
+      <div class="voice-play-row">
+        <div class="voice-play-btn" style="width:36px; height:36px; background:linear-gradient(135deg,#EC4899,#6366F1); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:none;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <span style="font-size:12px; color:var(--text-muted);">0:10 preview</span>
+        <button class="btn-ghost" style="padding:6px 14px; font-size:12px; margin-left:auto;">Use Voice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer reuse -->
+  <div class="enterprise-section">
+    <div class="enterprise-card glow-border">
+      <h2 class="reveal">Don't hear what you need?<br><span class="gradient-text">Clone your own voice.</span></h2>
+      <p class="reveal">Upload a 30-second sample and create your perfect digital voice twin. Available on Pro and above.</p>
+      <div class="enterprise-btns reveal">
+        <a href="#" class="btn-hero-primary">
+          <span>Clone a Voice</span>
+        </a>
+        <a href="#" class="btn-hero-secondary" onclick="navigateTo('pricing'); return false;">See Pricing</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end page-voices -->
+
+<!-- ============================================
+     PAGE: STUDIO
+============================================ -->
+<div class="page" id="page-studio">
+
+  <div class="studio-hero">
+    <div>
+      <div class="section-label reveal">Studio</div>
+      <h1 class="section-title reveal">
+        Create natural speech<br><span class="gradient-text">in seconds</span>
+      </h1>
+      <p class="section-subtitle reveal" style="margin-bottom:32px;">
+        ORIVOX Studio is your complete voice production workspace. Type, select, tune, and export — all in one place with premium quality output.
+      </p>
+      <div style="display:flex; gap:16px; flex-wrap:wrap;" class="reveal">
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M8 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          No recording gear needed
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M8 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          Studio-quality 48kHz
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-secondary);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M8 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          Export MP3, WAV, FLAC
+        </div>
+      </div>
+    </div>
+
+    <!-- Studio Interface -->
+    <div class="studio-interface reveal-right">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-muted); font-family:var(--font-mono);">ORIVOX Studio v3.0</span>
+        <div style="display:flex; gap:6px;">
+          <div style="width:10px; height:10px; border-radius:50%; background:#FF5F57;"></div>
+          <div style="width:10px; height:10px; border-radius:50%; background:#FFBD2E;"></div>
+          <div style="width:10px; height:10px; border-radius:50%; background:#28CA41;"></div>
+        </div>
+      </div>
+
+      <div class="studio-tabs">
+        <button class="studio-tab active">Text to Speech</button>
+        <button class="studio-tab">Voice Clone</button>
+        <button class="studio-tab">Projects</button>
+      </div>
+
+      <textarea class="studio-textarea" placeholder="Type or paste your text here...">Welcome to ORIVOX — the future of AI voice generation. Transform any text into studio-quality speech with unmatched realism and expression.<span class="typing-cursor"></span></textarea>
+
+      <div class="studio-controls">
+        <div style="position:relative;">
+          <select class="studio-select" style="width:100%;">
+            <option>🎙 Aurora — Warm & Natural</option>
+            <option>🎙 Nova — Deep & Rich</option>
+            <option>🎙 Iris — Crisp British</option>
+            <option>🎙 Luna — Elegant French</option>
+          </select>
+          <svg style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+        </div>
+        <div style="position:relative;">
+          <select class="studio-select" style="width:100%;">
+            <option>🇺🇸 English (US)</option>
+            <option>🇬🇧 English (UK)</option>
+            <option>🇯🇵 Japanese</option>
+            <option>🇪🇸 Spanish</option>
+            <option>🇫🇷 French</option>
+          </select>
+          <svg style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+        </div>
+      </div>
+
+      <!-- Emotion selector -->
+      <div style="display:flex; gap:6px; margin:12px 0; flex-wrap:wrap;">
+        <button class="filter-pill active" style="padding:5px 12px; font-size:11px; border-radius:8px;">Neutral</button>
+        <button class="filter-pill" style="padding:5px 12px; font-size:11px; border-radius:8px;">Happy</button>
+        <button class="filter-pill" style="padding:5px 12px; font-size:11px; border-radius:8px;">Serious</button>
+        <button class="filter-pill" style="padding:5px 12px; font-size:11px; border-radius:8px;">Excited</button>
+        <button class="filter-pill" style="padding:5px 12px; font-size:11px; border-radius:8px;">Calm</button>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label"><span>Speed</span><span style="color:var(--neon-purple);">1.0x</span></div>
+        <input type="range" class="studio-slider" min="0" max="100" value="50">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>Stability</span><span style="color:var(--neon-blue);">75%</span></div>
+        <input type="range" class="studio-slider" min="0" max="100" value="75">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label"><span>Clarity</span><span style="color:var(--neon-cyan);">85%</span></div>
+        <input type="range" class="studio-slider" min="0" max="100" value="85">
+      </div>
+
+      <button class="btn-primary" style="width:100%; padding:14px; margin:16px 0; font-size:15px; border-radius:12px; cursor:none;">
+        <span style="margin-right:8px;">⚡</span> Generate Voice
+      </button>
+
+      <!-- Output -->
+      <div class="studio-output">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:12px; font-weight:600; color:var(--neon-purple);">● Output Ready</span>
+          <span style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">48kHz · WAV</span>
+        </div>
+        <div class="studio-waveform">
+          <div class="studio-wave-bar" style="animation-delay:0s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.1s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.2s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.3s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.4s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.05s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.15s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.25s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.35s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.45s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.07s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.17s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.27s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.37s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.47s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.1s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.2s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.3s;"></div>
+          <div class="studio-wave-bar" style="animation-delay:0.4s;"></div>
+        </div>
+        <div class="studio-playback-controls">
+          <div class="play-btn-small">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+          </div>
+          <div style="flex:1; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+            <div style="width:42%; height:100%; background:linear-gradient(90deg,var(--neon-purple),var(--neon-cyan)); border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">0:08</span>
+          <button style="background:rgba(255,255,255,0.06); border:1px solid var(--border-subtle); border-radius:8px; padding:5px 12px; color:var(--text-secondary); font-size:12px; cursor:none; font-family:var(--font-body);">↓ Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export formats -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto; text-align:center;">
+      <div class="section-label reveal">Export</div>
+      <h2 class="section-title reveal text-center">Export <span class="gradient-text">Studio-Ready Audio</span></h2>
+      <p class="section-subtitle reveal" style="margin:0 auto 48px; text-align:center;">Download in the perfect format for every platform and use case.</p>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;" class="reveal">
+        <div class="feature-card" style="text-align:center;">
+          <div class="feature-icon" style="margin:0 auto 16px; background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.1));">
+            <span style="font-size:22px;">🎵</span>
+          </div>
+          <h3 style="font-size:16px;">MP3</h3>
+          <p style="font-size:13px;">320kbps, universal compatibility, perfect for web and streaming.</p>
+        </div>
+        <div class="feature-card" style="text-align:center;">
+          <div class="feature-icon" style="margin:0 auto 16px; background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(99,102,241,0.1));">
+            <span style="font-size:22px;">🔊</span>
+          </div>
+          <h3 style="font-size:16px;">WAV</h3>
+          <p style="font-size:13px;">Lossless 48kHz quality for professional production and editing.</p>
+        </div>
+        <div class="feature-card" style="text-align:center;">
+          <div class="feature-icon" style="margin:0 auto 16px; background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(139,92,246,0.1));">
+            <span style="font-size:22px;">📼</span>
+          </div>
+          <h3 style="font-size:16px;">FLAC</h3>
+          <p style="font-size:13px;">High-fidelity compressed lossless audio for audiophile quality.</p>
+        </div>
+        <div class="feature-card" style="text-align:center;">
+          <div class="feature-icon" style="margin:0 auto 16px; background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(6,182,212,0.1));">
+            <span style="font-size:22px;">⚡</span>
+          </div>
+          <h3 style="font-size:16px;">OGG</h3>
+          <p style="font-size:13px;">Optimized for games, apps, and interactive media experiences.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- end page-studio -->
+
+<!-- ============================================
+     PAGE: USE CASES
+============================================ -->
+<div class="page" id="page-usecases">
+
+  <div class="page-hero">
+    <div class="section-label reveal">Use Cases</div>
+    <h1 class="reveal">
+      Built for <span class="gradient-text">Every Industry</span>
+    </h1>
+    <p class="reveal">From solo creators to Fortune 500 enterprises — ORIVOX powers voice in every corner of the creative and business world.</p>
+  </div>
+
+  <section>
+    <div style="max-width:1400px; margin:0 auto;">
+
+      <!-- Use case 1: Large -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; margin-bottom:80px; padding:48px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:28px;" class="reveal">
+        <div>
+          <div style="font-size:48px; margin-bottom:20px;">🎬</div>
+          <div class="section-label" style="margin-bottom:16px;">Content Creation</div>
+          <h2 style="font-family:var(--font-heading); font-size:36px; font-weight:700; letter-spacing:-1px; margin-bottom:16px; line-height:1.2;">YouTube, Reels &<br><span class="gradient-text">Video Voiceovers</span></h2>
+          <p style="font-size:15px; color:var(--text-secondary); line-height:1.7; margin-bottom:24px;">Generate studio-quality voiceovers for your videos in minutes. Choose from 300+ voices, match your brand tone, and export instantly. No microphone needed — just type and create.</p>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px;">
+            <span class="voice-tag" style="font-size:12px; padding:6px 14px;">YouTube</span>
+            <span class="voice-tag" style="font-size:12px; padding:6px 14px;">TikTok</span>
+            <span class="voice-tag" style="font-size:12px; padding:6px 14px;">Instagram</span>
+            <span class="voice-tag" style="font-size:12px; padding:6px 14px;">Documentaries</span>
+          </div>
+          <a href="#" class="btn-hero-primary" onclick="navigateTo('studio'); return false;" style="display:inline-flex;">
+            <span>Start Creating →</span>
+          </a>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(59,130,246,0.05)); border:1px solid rgba(139,92,246,0.2); border-radius:20px; padding:32px; text-align:center;">
+          <div style="font-size:80px; margin-bottom:16px; display:block; animation:floatPanel 5s ease-in-out infinite;">🎥</div>
+          <div style="background:rgba(0,0,0,0.4); border-radius:12px; padding:16px;">
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px; font-family:var(--font-mono);">▶ GENERATING VOICEOVER</div>
+            <div class="waveform" style="height:32px; justify-content:center;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Use case grid 2x2 -->
+      <div class="use-cases-grid" style="margin-bottom:48px;">
+        <div class="use-case-card reveal stagger-1" style="flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(99,102,241,0.1)); border:1px solid rgba(6,182,212,0.3); font-size:32px;">📚</div>
+            <div>
+              <h3>Audiobooks & Publishing</h3>
+              <p>Convert entire manuscripts to professional audiobooks in hours, not months. Create full-cast productions with multiple character voices, emotions, and perfect pacing.</p>
+            </div>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-2" style="flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(139,92,246,0.1)); border:1px solid rgba(236,72,153,0.3); font-size:32px;">📢</div>
+            <div>
+              <h3>Marketing & Advertising</h3>
+              <p>Generate compelling ad voiceovers at scale. Test dozens of voice styles, tones, and scripts in minutes. Produce broadcast-ready ads for TV, radio, and digital.</p>
+            </div>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-3" style="flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(6,182,212,0.1)); border:1px solid rgba(59,130,246,0.3); font-size:32px;">🎮</div>
+            <div>
+              <h3>Games & Interactive Media</h3>
+              <p>Voice entire game casts with dynamic character voices. Create NPCs, cutscenes, and adaptive dialogue systems with real-time voice generation and low-latency API.</p>
+            </div>
+          </div>
+        </div>
+        <div class="use-case-card reveal stagger-4" style="flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div class="use-case-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.3); font-size:32px;">🧠</div>
+            <div>
+              <h3>Education & E-Learning</h3>
+              <p>Make learning accessible worldwide with multilingual voice content. Create engaging courses, tutorials, and interactive lessons in 29+ languages instantly.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- More use cases row -->
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px;">
+        <div class="feature-card reveal stagger-1" style="text-align:center; padding:28px 20px;">
+          <div style="font-size:36px; margin-bottom:16px;">🎙️</div>
+          <h3 style="font-size:16px; margin-bottom:8px;">Podcasting</h3>
+          <p style="font-size:13px;">Professional intros, narration, and full episodes.</p>
+        </div>
+        <div class="feature-card reveal stagger-2" style="text-align:center; padding:28px 20px;">
+          <div style="font-size:36px; margin-bottom:16px;">🤖</div>
+          <h3 style="font-size:16px; margin-bottom:8px;">AI Assistants</h3>
+          <p style="font-size:13px;">Voice your chatbots and AI products realistically.</p>
+        </div>
+        <div class="feature-card reveal stagger-3" style="text-align:center; padding:28px 20px;">
+          <div style="font-size:36px; margin-bottom:16px;">📱</div>
+          <h3 style="font-size:16px; margin-bottom:8px;">Apps & Products</h3>
+          <p style="font-size:13px;">Embed natural TTS into any app via API integration.</p>
+        </div>
+        <div class="feature-card reveal stagger-4" style="text-align:center; padding:28px 20px;">
+          <div style="font-size:36px; margin-bottom:16px;">🌍</div>
+          <h3 style="font-size:16px; margin-bottom:8px;">Localization</h3>
+          <p style="font-size:13px;">Translate and voice content in 29+ languages instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="enterprise-section">
+    <div class="enterprise-card glow-border">
+      <h2 class="reveal">Ready to transform<br><span class="gradient-text">your creative workflow?</span></h2>
+      <p class="reveal">Join 2M+ creators already using ORIVOX to produce better audio, faster.</p>
+      <div class="enterprise-btns reveal">
+        <a href="#" class="btn-hero-primary" onclick="navigateTo('studio'); return false;"><span>Start Free Today</span></a>
+        <a href="#" class="btn-hero-secondary" onclick="navigateTo('pricing'); return false;">View Pricing</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end page-usecases -->
+
+<!-- ============================================
+     PAGE: PRICING
+============================================ -->
+<div class="page" id="page-pricing">
+
+  <div class="page-hero">
+    <div class="section-label reveal">Pricing</div>
+    <h1 class="reveal">Simple, <span class="gradient-text">Transparent Pricing</span></h1>
+    <p class="reveal">Choose the plan that fits your creative needs. Start free, scale with confidence. Cancel anytime.</p>
+  </div>
+
+  <section>
+    <div style="max-width:1400px; margin:0 auto;">
+      <div class="toggle-container">
+        <span class="toggle-label active" id="monthlyLabel">Monthly</span>
+        <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()">
+          <div class="toggle-knob"></div>
+        </div>
+        <span class="toggle-label" id="yearlyLabel">Yearly</span>
+        <span class="yearly-badge">Save 30%</span>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Starter -->
+        <div class="pricing-card reveal stagger-1">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" id="price-starter">0</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="plan-desc">Perfect for exploring AI voice generation and personal projects.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>10,000 characters/month</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>30+ voices</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>MP3 export</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>3 projects</li>
+            <li><div class="feature-cross"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><span style="color:var(--text-muted);">Voice cloning</span></li>
+            <li><div class="feature-cross"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><span style="color:var(--text-muted);">API access</span></li>
+          </ul>
+          <button class="plan-cta plan-cta-ghost">Get Started Free</button>
+        </div>
+
+        <!-- Pro -->
+        <div class="pricing-card featured reveal stagger-2">
+          <div class="plan-badge">Most Popular</div>
+          <div class="plan-name">Pro</div>
+          <div class="plan-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" id="price-pro">22</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="plan-desc">For creators and professionals who need power and flexibility.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>500,000 characters/month</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>300+ voices + library</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>MP3, WAV, FLAC export</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Unlimited projects</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>3 voice clones</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>API access (10k calls/mo)</li>
+          </ul>
+          <button class="plan-cta plan-cta-primary">Start Pro Free Trial</button>
+        </div>
+
+        <!-- Studio -->
+        <div class="pricing-card reveal stagger-3">
+          <div class="plan-name">Studio</div>
+          <div class="plan-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" id="price-studio">99</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="plan-desc">For studios, agencies, and power users with high-volume needs.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>2M characters/month</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Full voice library</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>All export formats</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>10 voice clones</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Unlimited API access</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Team collaboration (5 seats)</li>
+          </ul>
+          <button class="plan-cta plan-cta-ghost">Start Studio Plan</button>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="pricing-card reveal stagger-4">
+          <div class="plan-name">Enterprise</div>
+          <div class="plan-price">
+            <span class="price-amount" style="font-size:36px;">Custom</span>
+          </div>
+          <p class="plan-desc">Tailored solutions for large teams, enterprises, and custom integrations.</p>
+          <div class="plan-divider"></div>
+          <ul class="plan-features">
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Unlimited characters</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Custom voice development</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Unlimited voice clones</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Dedicated infrastructure</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>SLA & SSO support</li>
+            <li><div class="feature-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg></div>Unlimited team seats</li>
+          </ul>
+          <button class="plan-cta plan-cta-ghost" onclick="navigateTo('api')">Contact Sales</button>
+        </div>
+      </div>
+
+      <!-- FAQ-style note -->
+      <div style="text-align:center; margin-top:60px; padding:40px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:20px;" class="reveal">
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:0;">All plans include a 7-day free trial. No credit card required. Cancel anytime. Usage is measured in characters including spaces and punctuation.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- end page-pricing -->
+
+<!-- ============================================
+     PAGE: ABOUT
+============================================ -->
+<div class="page" id="page-about">
+
+  <div class="about-hero">
+    <div class="section-label reveal">About ORIVOX</div>
+    <h1 class="section-title reveal text-center" style="display:block;">
+      We believe every idea<br>deserves a <span class="gradient-text">voice</span>
+    </h1>
+    <p style="font-size:18px; color:var(--text-secondary); max-width:620px; margin:20px auto 0; line-height:1.7;" class="reveal">
+      ORIVOX was built by a team of AI researchers, audio engineers, and product designers who believe the future of human communication is voice — and that voice should be accessible to everyone.
+    </p>
+  </div>
+
+  <div class="mission-section">
+    <div>
+      <div class="section-label reveal">Our Mission</div>
+      <h2 class="section-title reveal">Give intelligence<br><span class="gradient-text">a voice.</span></h2>
+      <p style="font-size:16px; color:var(--text-secondary); line-height:1.8; margin-bottom:24px;" class="reveal">
+        Voice is the most natural form of human expression. For millennia, storytellers, teachers, performers, and leaders have used voice to inspire, educate, and connect. We're building the technology that makes this power universally accessible.
+      </p>
+      <p style="font-size:16px; color:var(--text-secondary); line-height:1.8;" class="reveal">
+        ORIVOX combines cutting-edge neural architecture with an obsession for audio quality, creating an AI voice platform that doesn't just generate speech — it generates meaning.
+      </p>
+    </div>
+    <div class="mission-visual reveal-right">
+      <div class="mission-graphic">
+        <div class="mission-number">AI</div>
+        <div class="mission-number-label">Meets Human Expression</div>
+        <div style="margin-top:24px; display:flex; justify-content:center; gap:20px;">
+          <div style="text-align:center;">
+            <div style="font-size:28px; font-weight:700; font-family:var(--font-heading); color:white; margin-bottom:4px;">29+</div>
+            <div style="font-size:12px; color:var(--text-muted);">Languages</div>
+          </div>
+          <div style="width:1px; background:var(--border-subtle);"></div>
+          <div style="text-align:center;">
+            <div style="font-size:28px; font-weight:700; font-family:var(--font-heading); color:white; margin-bottom:4px;">300+</div>
+            <div style="font-size:12px; color:var(--text-muted);">Voices</div>
+          </div>
+          <div style="width:1px; background:var(--border-subtle);"></div>
+          <div style="text-align:center;">
+            <div style="font-size:28px; font-weight:700; font-family:var(--font-heading); color:white; margin-bottom:4px;">2M+</div>
+            <div style="font-size:12px; color:var(--text-muted);">Creators</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Values -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto; text-align:center; margin-bottom:60px;">
+      <div class="section-label reveal">Values</div>
+      <h2 class="section-title reveal text-center">What drives us <span class="gradient-text">forward</span></h2>
+    </div>
+  </section>
+
+  <div class="values-grid">
+    <div class="value-card reveal stagger-1">
+      <div style="font-size:36px; margin-bottom:16px;">🎯</div>
+      <h3>Quality First</h3>
+      <p>We obsess over audio quality. Every voice model goes through hundreds of hours of training and evaluation before reaching our users. Nothing ships unless it's exceptional.</p>
+    </div>
+    <div class="value-card reveal stagger-2">
+      <div style="font-size:36px; margin-bottom:16px;">🌍</div>
+      <h3>Global by Design</h3>
+      <p>Language should never be a barrier. We're building the most comprehensive multilingual voice platform on the planet, with native-quality voices for every major language.</p>
+    </div>
+    <div class="value-card reveal stagger-3">
+      <div style="font-size:36px; margin-bottom:16px;">🔐</div>
+      <h3>Responsible AI</h3>
+      <p>Voice cloning is powerful. We take safety seriously with consent verification, watermarking, and abuse prevention systems built into our core infrastructure.</p>
+    </div>
+    <div class="value-card reveal stagger-1">
+      <div style="font-size:36px; margin-bottom:16px;">⚡</div>
+      <h3>Speed Matters</h3>
+      <p>Creativity flows fast. Our platform is engineered for speed — real-time generation, instant preview, and rapid iteration so your workflow never slows down.</p>
+    </div>
+    <div class="value-card reveal stagger-2">
+      <div style="font-size:36px; margin-bottom:16px;">🤝</div>
+      <h3>Creator-Centric</h3>
+      <p>Every feature we build starts with creators. We listen, iterate, and ship based on real feedback from the communities that use ORIVOX every day.</p>
+    </div>
+    <div class="value-card reveal stagger-3">
+      <div style="font-size:36px; margin-bottom:16px;">🚀</div>
+      <h3>Endlessly Curious</h3>
+      <p>The frontier of voice AI moves fast. We stay ahead by investing deeply in research, exploring new architectures, and never settling for yesterday's benchmark.</p>
+    </div>
+  </div>
+
+  <div class="enterprise-section">
+    <div class="enterprise-card glow-border">
+      <h2 class="reveal">Want to partner<br>with <span class="gradient-text">ORIVOX?</span></h2>
+      <p class="reveal">We're always open to partnerships, integrations, and collaborations with forward-thinking companies and creators.</p>
+      <div class="enterprise-btns reveal">
+        <a href="#" class="btn-hero-primary"><span>Contact Us</span></a>
+        <a href="#" class="btn-hero-secondary" onclick="navigateTo('api'); return false;">View Enterprise</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end page-about -->
+
+<!-- ============================================
+     PAGE: API
+============================================ -->
+<div class="page" id="page-api">
+
+  <div class="page-hero">
+    <div class="section-label reveal">Developer API</div>
+    <h1 class="reveal">
+      Build with the<br><span class="gradient-text">ORIVOX API</span>
+    </h1>
+    <p class="reveal">Embed world-class AI voice generation into any application with our powerful, low-latency REST API. Developer-first. Production-ready. Infinitely scalable.</p>
+    <div class="hero-ctas" style="justify-content:center;" class="reveal">
+      <a href="#" class="btn-hero-primary"><span>Get API Key</span></a>
+      <a href="#" class="btn-hero-secondary">Read Docs</a>
+    </div>
+  </div>
+
+  <!-- Code block -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start;">
+      <div>
+        <div class="section-label reveal">Quick Start</div>
+        <h2 class="section-title reveal">From zero to voice<br><span class="gradient-text">in 3 lines.</span></h2>
+        <p style="font-size:16px; color:var(--text-secondary); line-height:1.7; margin-bottom:32px;" class="reveal">
+          Our API is designed to be simple enough to prototype in minutes, yet powerful enough to scale to millions of requests. REST-native with SDKs for Python, Node.js, Go, and more.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:16px;" class="reveal">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">1</div>
+            <span style="font-size:14px; color:var(--text-secondary);">Get your API key from the dashboard</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--neon-blue),var(--neon-cyan)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">2</div>
+            <span style="font-size:14px; color:var(--text-secondary);">Send text and voice parameters to our endpoint</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--neon-cyan),var(--neon-indigo)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">3</div>
+            <span style="font-size:14px; color:var(--text-secondary);">Receive studio-quality audio in milliseconds</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block reveal-right">
+        <div class="code-header">
+          <div class="code-dot code-dot-1"></div>
+          <div class="code-dot code-dot-2"></div>
+          <div class="code-dot code-dot-3"></div>
+          <span style="font-size:12px; color:var(--text-muted); margin-left:8px; font-family:var(--font-mono);">orivox_example.py</span>
+        </div>
+        <div>
+          <span class="code-keyword">import</span> <span class="code-variable">orivox</span><br><br>
+          <span class="code-comment"># Initialize the client</span><br>
+          <span class="code-variable">client</span> = <span class="code-function">orivox</span>.<span class="code-function">Client</span>(<br>
+          &nbsp;&nbsp;<span class="code-variable">api_key</span>=<span class="code-string">"or_live_xxxxxxxxxxxx"</span><br>
+          )<br><br>
+          <span class="code-comment"># Generate speech from text</span><br>
+          <span class="code-variable">audio</span> = <span class="code-variable">client</span>.<span class="code-function">speech</span>.<span class="code-function">generate</span>(<br>
+          &nbsp;&nbsp;<span class="code-variable">text</span>=<span class="code-string">"Welcome to ORIVOX."</span>,<br>
+          &nbsp;&nbsp;<span class="code-variable">voice_id</span>=<span class="code-string">"aurora_en_female"</span>,<br>
+          &nbsp;&nbsp;<span class="code-variable">model</span>=<span class="code-string">"orivox-v3-ultra"</span>,<br>
+          &nbsp;&nbsp;<span class="code-variable">language</span>=<span class="code-string">"en-US"</span>,<br>
+          &nbsp;&nbsp;<span class="code-variable">emotion</span>=<span class="code-string">"neutral"</span>,<br>
+          &nbsp;&nbsp;<span class="code-variable">speed</span>=<span class="code-number">1.0</span>,<br>
+          &nbsp;&nbsp;<span class="code-variable">format</span>=<span class="code-string">"wav"</span><br>
+          )<br><br>
+          <span class="code-comment"># Save audio to file</span><br>
+          <span class="code-variable">audio</span>.<span class="code-function">save</span>(<span class="code-string">"output.wav"</span>)<br><br>
+          <span class="code-comment"># Returns: 48kHz WAV audio in ~80ms</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integrations -->
+  <section style="background:rgba(255,255,255,0.01);">
+    <div style="max-width:1400px; margin:0 auto; text-align:center; margin-bottom:60px;">
+      <div class="section-label reveal">Integrations</div>
+      <h2 class="section-title reveal text-center">Works with your<br><span class="gradient-text">existing stack</span></h2>
+    </div>
+  </section>
+
+  <div class="integration-grid">
+    <div class="integration-card reveal stagger-1">
+      <div class="integration-logo" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(59,130,246,0.1)); border:1px solid rgba(139,92,246,0.25);">🐍</div>
+      <div>
+        <h4>Python SDK</h4>
+        <p>pip install orivox · Full async support</p>
+      </div>
+    </div>
+    <div class="integration-card reveal stagger-2">
+      <div class="integration-logo" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(99,102,241,0.1)); border:1px solid rgba(6,182,212,0.25);">⬡</div>
+      <div>
+        <h4>Node.js SDK</h4>
+        <p>npm install @orivox/sdk · TypeScript native</p>
+      </div>
+    </div>
+    <div class="integration-card reveal stagger-3">
+      <div class="integration-logo" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(139,92,246,0.1)); border:1px solid rgba(236,72,153,0.25);">◈</div>
+      <div>
+        <h4>REST API</h4>
+        <p>Language-agnostic · OpenAPI spec included</p>
+      </div>
+    </div>
+    <div class="integration-card reveal stagger-1">
+      <div class="integration-logo" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(6,182,212,0.1)); border:1px solid rgba(59,130,246,0.25);">⚙</div>
+      <div>
+        <h4>Webhooks</h4>
+        <p>Real-time event streams for async workflows</p>
+      </div>
+    </div>
+    <div class="integration-card reveal stagger-2">
+      <div class="integration-logo" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.25);">☁</div>
+      <div>
+        <h4>AWS / GCP / Azure</h4>
+        <p>Cloud-native integrations and marketplace listings</p>
+      </div>
+    </div>
+    <div class="integration-card reveal stagger-3">
+      <div class="integration-logo" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(236,72,153,0.1)); border:1px solid rgba(139,92,246,0.25);">⚡</div>
+      <div>
+        <h4>Zapier & Make</h4>
+        <p>No-code automation triggers and actions</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security + Enterprise -->
+  <section>
+    <div style="max-width:1400px; margin:0 auto; text-align:center; margin-bottom:60px;">
+      <div class="section-label reveal">Enterprise Grade</div>
+      <h2 class="section-title reveal text-center">Built for <span class="gradient-text">scale and security</span></h2>
+    </div>
+    <div style="max-width:1400px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+      <div class="feature-card reveal stagger-1" style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:16px;">🔒</div>
+        <h3>SOC 2 Compliant</h3>
+        <p>Enterprise-grade security with SOC 2 Type II certification, end-to-end encryption, and regular third-party audits.</p>
+      </div>
+      <div class="feature-card reveal stagger-2" style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:16px;">⚡</div>
+        <h3>~80ms Latency</h3>
+        <p>Ultra-low latency voice generation served from 12 global edge locations for consistent performance worldwide.</p>
+      </div>
+      <div class="feature-card reveal stagger-3" style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:16px;">📈</div>
+        <h3>Infinitely Scalable</h3>
+        <p>Auto-scaling infrastructure that handles millions of concurrent requests. No rate limits on Enterprise plans.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="enterprise-section">
+    <div class="enterprise-card glow-border">
+      <h2 class="reveal">Ready to build<br>with <span class="gradient-text">ORIVOX?</span></h2>
+      <p class="reveal">Get your API key today and start generating in minutes. Enterprise deals available for high-volume usage.</p>
+      <div class="enterprise-btns reveal">
+        <a href="#" class="btn-hero-primary"><span>Get API Key Free</span></a>
+        <a href="#" class="btn-hero-secondary">Contact Enterprise Sales</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end page-api -->
+
+<script>
+/* ============================================
+   CURSOR
+============================================ */
+const cursor = document.getElementById('cursor');
+const cursorTrail = document.getElementById('cursorTrail');
+let mouseX = 0, mouseY = 0;
+let trailX = 0, trailY = 0;
+
+document.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  cursor.style.left = mouseX - 6 + 'px';
+  cursor.style.top = mouseY - 6 + 'px';
+});
+
+// Trail with delay
+function animateTrail() {
+  trailX += (mouseX - trailX) * 0.12;
+  trailY += (mouseY - trailY) * 0.12;
+  cursorTrail.style.left = trailX - 20 + 'px';
+  cursorTrail.style.top = trailY - 20 + 'px';
+  requestAnimationFrame(animateTrail);
+}
+animateTrail();
+
+document.addEventListener('mousedown', () => {
+  cursor.classList.add('clicked');
+  cursorTrail.classList.add('clicked');
+});
+
+document.addEventListener('mouseup', () => {
+  cursor.classList.remove('clicked');
+  cursorTrail.classList.remove('clicked');
+});
+
+// Magnetic effect on buttons
+document.querySelectorAll('.btn-primary, .btn-hero-primary, .btn-ghost, .btn-hero-secondary, .filter-pill, .voice-play-btn, .play-btn-small').forEach(btn => {
+  btn.addEventListener('mousemove', (e) => {
+    const rect = btn.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    btn.style.transform = `translate(${x * 0.12}px, ${y * 0.12}px) scale(1.03)`;
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.transform = '';
+  });
+});
+
+/* ============================================
+   NAVIGATION SCROLL
+============================================ */
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+}, { passive: true });
+
+/* ============================================
+   PAGE NAVIGATION
+============================================ */
+const pageTransition = document.getElementById('pageTransition');
+let currentPage = 'home';
+
+function navigateTo(pageName) {
+  if (pageName === currentPage) return;
+  
+  // Animate out
+  pageTransition.style.transform = 'translateX(-100%)';
+  pageTransition.style.transition = 'none';
+  pageTransition.offsetHeight; // reflow
+  pageTransition.style.transition = 'transform 0.45s cubic-bezier(0.76, 0, 0.24, 1)';
+  pageTransition.style.transform = 'translateX(0)';
+  
+  setTimeout(() => {
+    // Switch pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const nextPage = document.getElementById('page-' + pageName);
+    if (nextPage) {
+      nextPage.classList.add('active');
+      currentPage = pageName;
+      window.scrollTo(0, 0);
+      
+      // Initialize page elements
+      initWaveforms();
+      initScrollAnimations();
+      
+      // Animate in
+      pageTransition.style.transition = 'transform 0.45s cubic-bezier(0.76, 0, 0.24, 1)';
+      pageTransition.style.transform = 'translateX(100%)';
+      
+      setTimeout(() => {
+        pageTransition.style.transition = 'none';
+        pageTransition.style.transform = 'translateX(-100%)';
+      }, 450);
+    }
+  }, 350);
+}
+
+/* ============================================
+   WAVEFORM GENERATION
+============================================ */
+function initWaveforms() {
+  // Hero waveform
+  const heroWaveform = document.getElementById('heroWaveform');
+  if (heroWaveform) {
+    heroWaveform.innerHTML = '';
+    for (let i = 0; i < 28; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      const height = Math.random() * 80 + 10;
+      bar.style.height = height + '%';
+      bar.style.animationDelay = (i * 0.06) + 's';
+      bar.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+      heroWaveform.appendChild(bar);
+    }
+  }
+
+  // Voice card mini waves
+  ['wave1','wave2','wave3','wave4'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'mini-bar';
+        const h = Math.random() * 80 + 10;
+        bar.style.height = h + '%';
+        bar.style.animationDelay = (i * 0.08) + 's';
+        bar.style.animationDuration = (0.6 + Math.random() * 0.6) + 's';
+        el.appendChild(bar);
+      }
+    }
+  });
+
+  // All waveforms in voice cards
+  document.querySelectorAll('.waveform').forEach(wf => {
+    if (!wf.id) {
+      wf.innerHTML = '';
+      for (let i = 0; i < 24; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'wave-bar';
+        const h = Math.random() * 80 + 10;
+        bar.style.height = h + '%';
+        bar.style.animationDelay = (i * 0.06) + 's';
+        bar.style.animationDuration = (0.7 + Math.random() * 0.7) + 's';
+        wf.appendChild(bar);
+      }
+    }
+  });
+}
+
+/* ============================================
+   SCROLL ANIMATIONS
+============================================ */
+function initScrollAnimations() {
+  const reveals = document.querySelectorAll('.page.active .reveal, .page.active .reveal-left, .page.active .reveal-right, .page.active .reveal-scale');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  
+  reveals.forEach(el => observer.observe(el));
+  
+  // Also trigger visible elements immediately
+  setTimeout(() => {
+    reveals.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) {
+        el.classList.add('revealed');
+      }
+    });
+  }, 100);
+}
+
+/* ============================================
+   PARALLAX ON MOUSE MOVE
+============================================ */
+document.addEventListener('mousemove', (e) => {
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  const moveX = (e.clientX - centerX) / centerX;
+  const moveY = (e.clientY - centerY) / centerY;
+  
+  // Move orbs subtly
+  const orbs = document.querySelectorAll('.bg-orb');
+  orbs.forEach((orb, i) => {
+    const factor = (i + 1) * 8;
+    orb.style.transform = `translate(${moveX * factor}px, ${moveY * factor}px)`;
+  });
+  
+  // Float panels parallax
+  const floatPanels = document.querySelectorAll('.float-panel');
+  floatPanels.forEach((panel, i) => {
+    const factor = (i % 2 === 0 ? 1 : -1) * 6;
+    panel.style.transform = `translateY(${moveY * factor}px) translateX(${moveX * factor * 0.5}px)`;
+  });
+  
+  // Hero rings subtle movement
+  const rings = document.querySelectorAll('.hero-ring');
+  rings.forEach((ring, i) => {
+    ring.style.transform = `translate(calc(-50% + ${moveX * (i+1) * 3}px), calc(-50% + ${moveY * (i+1) * 3}px)) rotate(0deg)`;
+  });
+});
+
+/* ============================================
+   FILTER PILLS
+============================================ */
+document.querySelectorAll('.filter-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    this.closest('.filter-bar, div').querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+/* ============================================
+   STUDIO TABS
+============================================ */
+document.querySelectorAll('.studio-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    this.closest('.studio-tabs').querySelectorAll('.studio-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+/* ============================================
+   PRICING TOGGLE
+============================================ */
+let isYearly = false;
+const prices = {
+  starter: [0, 0],
+  pro: [22, 15],
+  studio: [99, 69]
+};
+
+function toggleBilling() {
+  isYearly = !isYearly;
+  const toggle = document.getElementById('billingToggle');
+  const monthly = document.getElementById('monthlyLabel');
+  const yearly = document.getElementById('yearlyLabel');
+  
+  if (isYearly) {
+    toggle.classList.add('yearly');
+    monthly.classList.remove('active');
+    yearly.classList.add('active');
+  } else {
+    toggle.classList.remove('yearly');
+    monthly.classList.add('active');
+    yearly.classList.remove('active');
+  }
+  
+  // Animate price changes
+  animatePrice('price-starter', prices.starter[isYearly ? 1 : 0]);
+  animatePrice('price-pro', prices.pro[isYearly ? 1 : 0]);
+  animatePrice('price-studio', prices.studio[isYearly ? 1 : 0]);
+}
+
+function animatePrice(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const current = parseInt(el.textContent) || 0;
+  const diff = target - current;
+  const steps = 20;
+  let step = 0;
+  
+  const interval = setInterval(() => {
+    step++;
+    const progress = step / steps;
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(current + diff * eased);
+    if (step >= steps) {
+      clearInterval(interval);
+      el.textContent = target;
+    }
+  }, 20);
+}
+
+/* ============================================
+   TYPING ANIMATION
+============================================ */
+function initTyping() {
+  const textarea = document.querySelector('.studio-textarea');
+  if (!textarea) return;
+  const text = "Welcome to ORIVOX — the future of AI voice generation. Transform any text into studio-quality speech with unmatched realism and expression.";
+  let i = 0;
+  textarea.value = '';
+  
+  function type() {
+    if (i <= text.length) {
+      textarea.value = text.substring(0, i);
+      i++;
+      setTimeout(type, 30 + Math.random() * 40);
+    }
+  }
+  
+  setTimeout(type, 1000);
+}
+
+/* ============================================
+   SLIDER LIVE VALUES
+============================================ */
+document.querySelectorAll('.studio-slider').forEach((slider, i) => {
+  slider.addEventListener('input', function() {
+    const labels = this.closest('.slider-group').querySelectorAll('.slider-label span');
+    if (i === 0) labels[1].textContent = (this.value / 50).toFixed(1) + 'x';
+    else labels[1].textContent = this.value + '%';
+  });
+});
+
+/* ============================================
+   VOICE CARD HOVER WAVE ACTIVATION
+============================================ */
+document.querySelectorAll('.voice-card, .voice-card-full').forEach(card => {
+  card.addEventListener('mouseenter', () => {
+    const bars = card.querySelectorAll('.mini-bar, .wave-bar');
+    bars.forEach(bar => {
+      bar.style.opacity = '1';
+      bar.style.animationPlayState = 'running';
+    });
+  });
+  card.addEventListener('mouseleave', () => {
+    const bars = card.querySelectorAll('.mini-bar');
+    bars.forEach(bar => {
+      bar.style.opacity = '0.4';
+    });
+  });
+});
+
+/* ============================================
+   NEON TRAIL ANIMATION (Multiple instances)
+============================================ */
+function randomizeTrails() {
+  document.querySelectorAll('.neon-trail').forEach(trail => {
+    const randomDelay = Math.random() * 8;
+    trail.style.animationDelay = `-${randomDelay}s`;
+    trail.style.left = (Math.random() * 90 + 5) + '%';
+    trail.style.height = (100 + Math.random() * 200) + 'px';
+  });
+}
+
+/* ============================================
+   FEATURE CARD TILT
+============================================ */
+document.querySelectorAll('.feature-card, .pricing-card, .voice-card, .testimonial-card').forEach(card => {
+  card.addEventListener('mousemove', function(e) {
+    const rect = this.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    const tiltX = y * 6;
+    const tiltY = -x * 6;
+    this.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-6px)`;
+  });
+  
+  card.addEventListener('mouseleave', function() {
+    this.style.transform = '';
+    this.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  });
+});
+
+/* ============================================
+   INIT
+============================================ */
+window.addEventListener('load', () => {
+  initWaveforms();
+  initScrollAnimations();
+  randomizeTrails();
+  
+  // Observe scrolling for reveal elements
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+    scrollObserver.observe(el);
+  });
+});
+
+// Re-init on scroll
+window.addEventListener('scroll', () => {
+  initScrollAnimations();
+}, { passive: true });
+
+// Studio page typing when navigated to
+const origNavigateTo = window.navigateTo;
+
+/* ============================================
+   MOBILE MENU (basic)
+============================================ */
+const mobileBtn = document.getElementById('mobileMenuBtn');
+const navLinks = document.querySelector('.nav-links');
+let mobileOpen = false;
+
+mobileBtn.addEventListener('click', () => {
+  mobileOpen = !mobileOpen;
+  if (mobileOpen) {
+    navLinks.style.display = 'flex';
+    navLinks.style.flexDirection = 'column';
+    navLinks.style.position = 'fixed';
+    navLinks.style.top = '72px';
+    navLinks.style.left = '0';
+    navLinks.style.right = '0';
+    navLinks.style.background = 'rgba(4,4,8,0.95)';
+    navLinks.style.backdropFilter = 'blur(24px)';
+    navLinks.style.padding = '20px';
+    navLinks.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+    navLinks.style.zIndex = '999';
+    navLinks.style.gap = '4px';
+  } else {
+    navLinks.style.display = '';
+    navLinks.style.position = '';
+    navLinks.style.flexDirection = '';
+  }
+});
+
+// Close mobile menu on link click
+navLinks.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    if (mobileOpen) {
+      mobileOpen = false;
+      navLinks.style.display = '';
+      navLinks.style.position = '';
+      navLinks.style.flexDirection = '';
+    }
+  });
+});
+
+/* ============================================
+   PLAY BUTTON INTERACTIONS
+============================================ */
+document.querySelectorAll('.voice-play-btn, .play-btn-small').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const icon = this.querySelector('svg');
+    // Toggle play/pause visual
+    const isPlaying = this.dataset.playing === 'true';
+    if (isPlaying) {
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+      this.dataset.playing = 'false';
+    } else {
+      icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      this.dataset.playing = 'true';
+    }
+    
+    // Pulse animation
+    this.style.transform = 'scale(1.3)';
+    setTimeout(() => { this.style.transform = ''; }, 200);
+  });
+});
+
+/* ============================================
+   SEARCH BAR TYPING EFFECT
+============================================ */
+const searchInput = document.querySelector('.search-bar input');
+if (searchInput) {
+  searchInput.addEventListener('focus', function() {
+    this.parentElement.style.transform = 'scale(1.02)';
+    this.parentElement.querySelector('.search-icon').style.color = 'var(--neon-purple)';
+  });
+  searchInput.addEventListener('blur', function() {
+    this.parentElement.style.transform = '';
+    this.parentElement.querySelector('.search-icon').style.color = '';
+  });
+}
+
+/* ============================================
+   STUDIO TAB CONTENT SWITCHING
+============================================ */
+document.querySelectorAll('.studio-tab').forEach((tab, index) => {
+  tab.addEventListener('click', function() {
+    const textarea = document.querySelector('.studio-textarea');
+    const texts = [
+      "Welcome to ORIVOX — the future of AI voice generation. Transform any text into studio-quality speech with unmatched realism and expression.",
+      "Upload a voice sample to clone it. ORIVOX will create a perfect digital twin of your voice in minutes.",
+      "My Projects — 12 projects created. Total audio: 3h 24min. Credits remaining: 48,200 characters."
+    ];
+    if (textarea && texts[index]) {
+      textarea.value = texts[index];
+    }
+  });
+});
+
+/* ============================================
+   ANIMATED COUNTER ON SCROLL
+============================================ */
+function animateCounters() {
+  document.querySelectorAll('.stat-number').forEach(counter => {
+    if (counter.dataset.animated) return;
+    const rect = counter.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      counter.dataset.animated = 'true';
+      counter.style.opacity = '0';
+      setTimeout(() => {
+        counter.style.transition = 'opacity 0.5s ease';
+        counter.style.opacity = '1';
+      }, 100);
+    }
+  });
+}
+
+window.addEventListener('scroll', animateCounters, { passive: true });
+
+console.log('%c ORIVOX AI Voice Platform ', 'background: linear-gradient(135deg, #8B5CF6, #3B82F6); color: white; font-size: 16px; font-weight: bold; padding: 8px 20px; border-radius: 8px;');
+console.log('%c Give Intelligence a Voice. ', 'color: #8B5CF6; font-size: 12px;');
+</script>
+</body>
+</html>
